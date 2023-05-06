@@ -49,6 +49,10 @@ model_normals = max(n_mod_efr,[],1);
 n_mod_efr = n_mod_efr./model_normals;
 i_mod_efr = bsxfun(@rdivide, i_mod_efr, permute(model_normals,[1,3,2]));
 
+%de-mean
+n_mod_efr = n_mod_efr-mean(n_mod_efr,1);
+i_mod_efr = i_mod_efr-mean(i_mod_efr,2);
+
 %physiology
 % Concat data in a similar manner
 % Col 1 = SAM, Col 2 = SQ25, Col 3 = Harmonic rank 5, Col 4 = Rank 13
@@ -71,12 +75,15 @@ i_pitch_1_p = i_pitch_1_p((fs*t_win(1)+1):fs*t_win(2));
 i_pitch_2_p = phys_pitch_data.pool_efr_T_CA(:,1);
 i_pitch_2_p = i_pitch_2_p((fs*t_win(1)+1):fs*t_win(2));
 
-%pool and again normalize to 1
+%pool, normalize to 1, de-mean
 n_phys_efr = [n_sam_p,n_sq25_p,n_pitch_1_p,n_pitch_2_p];
 phys_norms = max(n_phys_efr,[],1);
 n_phys_efr = n_phys_efr./phys_norms;
+n_phys_efr = n_phys_efr-mean(n_phys_efr,1);
+
 i_phys_efr = [i_sam_p,i_sq25_p,i_pitch_1_p,i_pitch_2_p];
 i_phys_efr = i_phys_efr./phys_norms;
+i_phys_efr = i_phys_efr-mean(i_phys_efr,1);
 
 %% Spectral Analysis
 %Consider using a slight delay or taper to avoid onset 
@@ -98,6 +105,17 @@ i_phys_fft = i_phys_fft(1:end/2,:)*2;
 
 %% Plotting Figures
 
+%Plot Parameters:
+
+%colors
+%font size
+%linewidth
+l_wdth = 1.5;
+
+%fig position/size
+fig_dims = [1540 397 1393 564];
+
+
 %2 panel figure with model and physiological time waveforms side by side.
 %Choose a single cihc
 
@@ -105,7 +123,7 @@ i_phys_fft = i_phys_fft(1:end/2,:)*2;
 %Col 1 = SAM, Col 2 = Sq25, Col 3 = Rank 5, Col 4 = Rank 13
 sim_indexes = [10,12,1,6];
 
-ihc = 1;
+ihc = 4;
 ihc_val = mod_data.ihc_grades(ihc);
 
 n_to_plot_mod = n_mod_efr(:,sim_indexes);
@@ -114,29 +132,30 @@ i_to_plot_mod = squeeze(i_mod_efr(ihc,:,sim_indexes));
 %get the cihc value specified, can loop thru this and generate fig if
 %appropriate
 
+buff = 0.2;
+phys_scale_fact = 0.75; %arbitrary at this point, for vis purposes.
 
-buff = 0.25;
 buff = buff*1:size(n_to_plot_mod,2);
 
 t_waveform_model_phys = figure();
 subplot(1,2,1);
 title('Model')
 hold on
-plot(n_to_plot_mod+buff,'k','linewidth',2)
-plot(i_to_plot_mod+buff,'r','linewidth',2)
+plot(n_to_plot_mod+buff,'k','linewidth',l_wdth)
+plot(i_to_plot_mod+buff,'r','linewidth',l_wdth)
 hold off
+ylim([-1,4.5]);
 %FIX
 legend('Normal',['C_{ihc} = ',num2str(ihc_val)]);
 
 subplot(1,2,2)
 title('Physiology')
 hold on
-plot(n_phys_efr+buff,'k','linewidth',2)
-plot(i_phys_efr+buff,'r','linewidth',2)
+plot(phys_scale_fact*n_phys_efr+buff,'k','linewidth',l_wdth)
+plot(phys_scale_fact*i_phys_efr+buff,'r','linewidth',l_wdth)
 hold off
 legend('Normal',['Carboplatin']);
-
-
-
+ylim([-1,4.5]);
+set(gcf,'Position',fig_dims)
 %% Transduction Figures
 %% Save
