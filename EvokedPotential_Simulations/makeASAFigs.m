@@ -65,10 +65,13 @@ i_sq25_p = i_sq25_p((fs*t_win(1)+1):fs*t_win(2))';
 n_pitch_1_p = phys_pitch_data.pool_efr_T_NH(:,6);
 n_pitch_2_p = phys_pitch_data.pool_efr_T_NH(:,1);
 i_pitch_1_p = phys_pitch_data.pool_efr_T_CA(:,6);
-i_pitch_2_p = phys_pitch_data.pool_efr_T_CA(:,6);
+i_pitch_2_p = phys_pitch_data.pool_efr_T_CA(:,1);
 
+%pool and again normalize to 1
 n_phys_efr = [n_sam_p,n_sq25_p,n_pitch_1_p,n_pitch_2_p];
+n_phys_efr = n_phys_efr./max(n_phys_efr,[],1);
 i_phys_efr = [i_sam_p,i_sq25_p,i_pitch_1_p,i_pitch_2_p];
+i_phys_efr = i_phys_efr./max(n_phys_efr,[],1);
 
 %% Normalization by Norm Simulations and Baseline Values to Cross-Compare
 
