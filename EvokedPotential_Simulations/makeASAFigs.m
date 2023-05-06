@@ -52,9 +52,23 @@ i_mod_efr = bsxfun(@rdivide, i_mod_efr, permute(model_normals,[1,3,2]));
 %physiology
 % Concat data in a similar manner
 % Col 1 = SAM, Col 2 = SQ25, Col 3 = Harmonic rank 5, Col 4 = Rank 13
-% n_phys_efr = ;
+% data in slightly diff formats, but have fs = 8kHz.
+n_sam_p = mean(phys_data.data_out.sam_all_n,1);
+n_sam_p = n_sam_p((fs*t_win(1)+1):fs*t_win(2))';
+n_sq25_p = mean(phys_data.data_out.sq25_all_n,1);
+n_sq25_p = n_sq25_p((fs*t_win(1)+1):fs*t_win(2))';
+i_sam_p = mean(phys_data.data_out.sam_all_i,1);
+i_sam_p = i_sam_p((fs*t_win(1)+1):fs*t_win(2))';
+i_sq25_p = mean(phys_data.data_out.sq25_all_i,1);
+i_sq25_p = i_sq25_p((fs*t_win(1)+1):fs*t_win(2))';
 
+n_pitch_1_p = phys_pitch_data.pool_efr_T_NH(:,6);
+n_pitch_2_p = phys_pitch_data.pool_efr_T_NH(:,1);
+i_pitch_1_p = phys_pitch_data.pool_efr_T_CA(:,6);
+i_pitch_2_p = phys_pitch_data.pool_efr_T_CA(:,6);
 
+n_phys_efr = [n_sam_p,n_sq25_p,n_pitch_1_p,n_pitch_2_p];
+i_phys_efr = [i_sam_p,i_sq25_p,i_pitch_1_p,i_pitch_2_p];
 
 %% Normalization by Norm Simulations and Baseline Values to Cross-Compare
 
