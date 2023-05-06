@@ -15,7 +15,8 @@ addpath('BEZ2018model/')
 addpath('Functions')
 
 fig_dir = 'Figures';
-sim_name = 'sim_202305051452.mat';
+% sim_name = 'sim_202305051452.mat';
+sim_name = 'sim_738919.mat';
 phys_name = 'CA_Processed.mat';
 phys_pitch_name = 'pitch_ca_tts_nh_efrs.mat';
 
@@ -36,12 +37,14 @@ phys_pitch_data = load(phys_pitch_name);
 t_win = [0,.15]; 
 fs_mod = mod_data.psth_fs;
 fs = 8e3;
+t = t_win(1):1/fs:t_win(2)-1/fs;
 
 %model
 n_mod_efr = mod_data.grand_envs_n;
 n_mod_efr = resample(n_mod_efr,fs,fs_mod);
 n_mod_efr = n_mod_efr((fs*t_win(1)+1):fs*t_win(2),:);
 i_mod_efr = mod_data.grand_envs_i;
+i_mod_efr = resample(i_mod_efr,fs,fs_mod,'Dimension',2);
 i_mod_efr = i_mod_efr(:,(fs*t_win(1)+1):fs*t_win(2),:);
 model_normals = max(n_mod_efr,[],1);
 
@@ -91,40 +94,42 @@ i_phys_efr = i_phys_efr-mean(i_phys_efr,1);
 %Model FFT
 nfft = 2^nextpow2(size(n_mod_efr,1));
 f = linspace(0,fs/2,nfft/2);
+L = fs*(t_win(2)-t_win(1));
 
-n_mod_fft = abs(fft(n_mod_efr,nfft));
+n_mod_fft = abs(fft(n_mod_efr,nfft)/L);
 n_mod_fft = n_mod_fft(1:end/2,:)*2;
-i_mod_fft = abs(fft(i_mod_efr,nfft));
-i_mod_fft = i_mod_fft(1:end/2,:)*2;
+i_mod_fft = abs(fft(i_mod_efr,nfft,2)/L);
+i_mod_fft = i_mod_fft(:,1:end/2,:)*2;
 
 %Physiology FFT
-n_phys_fft = abs(fft(n_phys_efr,nfft));
+n_phys_fft = abs(fft(n_phys_efr,nfft)/L);
 n_phys_fft = n_phys_fft(1:end/2,:)*2;
-i_phys_fft = abs(fft(i_phys_efr,nfft));
+i_phys_fft = abs(fft(i_phys_efr,nfft)/L);
 i_phys_fft = i_phys_fft(1:end/2,:)*2;
 
 %% Plotting Figures
 
 %Plot Parameters:
-
 %colors
-%font size
-%linewidth
-l_wdth = 1.5;
+blck = [0.25, 0.25, 0.25];
+colors_ca = [0.8500, 0.3250, 0.0980, .85]; %last number is the face alpha/transparency
 
-%fig position/size
-fig_dims = [1540 397 1393 564];
-
+f_size = 13; %font size
+l_wdth = 1.5; %linewidth
+fig_dims = [1540 397 1393 564]; %fig position/size
+ylims_t = [1,7]; %waveform ylim
+ylims_s = [0.05,.55]; %spectral ylim
 
 %2 panel figure with model and physiological time waveforms side by side.
 %Choose a single cihc
 
 %reformatting model vectors to match physiology
 %Col 1 = SAM, Col 2 = Sq25, Col 3 = Rank 5, Col 4 = Rank 13
+labs = ["SAM","Sq25","F_0 103 | Rank 5","F_0 103 | Rank 13"];
 sim_indexes = [10,12,1,6];
 
-ihc = 4;
-ihc_val = mod_data.ihc_grades(ihc);
+ihc = 1;
+ihc_val = mod_data.ihc_grades(ihc)*100;
 
 n_to_plot_mod = n_mod_efr(:,sim_indexes);
 i_to_plot_mod = squeeze(i_mod_efr(ihc,:,sim_indexes));
@@ -132,30 +137,91 @@ i_to_plot_mod = squeeze(i_mod_efr(ihc,:,sim_indexes));
 %get the cihc value specified, can loop thru this and generate fig if
 %appropriate
 
-buff = 0.2;
-phys_scale_fact = 0.75; %arbitrary at this point, for vis purposes.
+buff = 1.5;
+phys_scale_fact = 0.65; %arbitrary at this point, for vis purposes.
 
-buff = buff*1:size(n_to_plot_mod,2);
+buff = buff*(1:size(n_to_plot_mod,2));
 
-t_waveform_model_phys = figure();
-subplot(1,2,1);
-title('Model')
+t_waveform_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+nexttile;
+title('Model Simulations')
 hold on
-plot(n_to_plot_mod+buff,'k','linewidth',l_wdth)
-plot(i_to_plot_mod+buff,'r','linewidth',l_wdth)
+plot(t,n_to_plot_mod+buff,'color',blck,'linewidth',l_wdth)
+plot(t,i_to_plot_mod+buff,'color',colors_ca,'linewidth',l_wdth)
 hold off
-ylim([-1,4.5]);
-%FIX
-legend('Normal',['C_{ihc} = ',num2str(ihc_val)]);
+yticks(buff*1.1);
+yticklabels([labs,'FontWeight','Bold']);
+ytickangle(45)
+ylim(ylims_t);
+%better way to do this?
+legend('Normal','','','','',['C_{ihc} = ',num2str(ihc_val)]);
 
-subplot(1,2,2)
-title('Physiology')
+nexttile;
+title('In-Vivo')
 hold on
-plot(phys_scale_fact*n_phys_efr+buff,'k','linewidth',l_wdth)
-plot(phys_scale_fact*i_phys_efr+buff,'r','linewidth',l_wdth)
+plot(t,phys_scale_fact*n_phys_efr+buff,'color',blck,'linewidth',l_wdth)
+plot(t,phys_scale_fact*i_phys_efr+buff,'color',colors_ca,'linewidth',l_wdth)
 hold off
-legend('Normal',['Carboplatin']);
-ylim([-1,4.5]);
+legend('Normal','','','','','Carboplatin - IHC Damage');
+ylim(ylims_t);
+yticks([]);
+
+%setting final attributes
+% han=axes(t_waveform_model_phys,'visible','off'); 
+% han.XLabel.Visible='on';
+xlabel(t_waveform_model_phys,'Time (s)','FontWeight','Bold','FontSize',f_size)
 set(gcf,'Position',fig_dims)
+set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
+set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+
+
+
+%Spectral Figures
+
+n_to_plot_mod = n_mod_fft(:,sim_indexes);
+i_to_plot_mod = squeeze(i_mod_fft(ihc,:,sim_indexes));
+
+buff = .1;
+buff = buff.*(1:size(n_to_plot_mod,2));
+
+figure;
+spect_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+nexttile;
+title('Model Simulations')
+hold on
+plot(f,n_to_plot_mod+buff,'color',blck,'linewidth',l_wdth)
+plot(f,i_to_plot_mod+buff,'color',colors_ca,'linewidth',l_wdth)
+hold off
+yticks(buff*1.1);
+yticklabels([labs,'FontWeight','Bold']);
+ytickangle(45)
+ylim(ylims_s);
+xlim([0,2000]);
+%better way to do this?
+legend('Normal','','','','',['C_{ihc} = ',num2str(ihc_val)]);
+
+nexttile;
+title('In-Vivo')
+hold on
+plot(f,phys_scale_fact*n_phys_fft+buff,'color',blck,'linewidth',l_wdth)
+plot(f,phys_scale_fact*i_phys_fft+buff,'color',colors_ca,'linewidth',l_wdth)
+hold off
+legend('Normal','','','','','Carboplatin - IHC Damage');
+ylim(ylims_s);
+xlim([0,2000]);
+yticks([]);
+
+%setting final attributes
+% han=axes(t_waveform_model_phys,'visible','off'); 
+% han.XLabel.Visible='on';
+xlabel(spect_model_phys,'Frequency (Hz)','FontWeight','Bold','FontSize',f_size)
+set(gcf,'Position',fig_dims)
+set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
+set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+
+
+
 %% Transduction Figures
+
+
 %% Save
