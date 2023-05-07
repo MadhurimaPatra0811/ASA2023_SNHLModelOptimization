@@ -40,10 +40,10 @@ F0 = 103;
 CF = [1.5:0.5:13,16,20,4e3/F0,40,80,160,190]*F0; %make sure to simulate 4k chan
 NFFT = 4000;
 NW = 3;
-dB_stim = 80;
+dB_stim = 75;
+spontrates = [55,40]; %[Normal, Impaired] to match in vivo mean
 
 %Normal Model Params
-modelParams.spont = 40;
 modelParams.tabs = 0.6e-3;
 modelParams.trel = 0.6e-3;
 modelParams.cohc = ones(length(CF),1); %healthy
@@ -59,7 +59,7 @@ modelParams.buffer = 2;
 
 %Impaired Params (just changing cohc/cihc):
 % [cohc_impaired,cihc_impaired,~] = fitaudiogram2(CF,dB_loss,modelParams.species);
-ihc_grades = [50,10,3,0.01]/100;
+ihc_grades = [50,10,3,0.1,0.01]/100;
 
 %% Stimuli Initialization:
 
@@ -84,6 +84,7 @@ all_stims = [pitches,sam_tone,r50',r25'];
 for r = 1:size(all_stims,2)
     
     modelParams.cihc = ones(length(CF),1); %healthy
+    modelParams.spont = spontrates(1);
     fprintf('\n STIMULUS %i of %i',r,size(all_stims,2));
     input = all_stims(:,r);
     modelParams.dur = length(input)/fs;
@@ -94,6 +95,7 @@ for r = 1:size(all_stims,2)
     for g = 1:length(ihc_grades)
         fprintf('\n    Impaired Run %i of %i', g, length(ihc_grades));
         modelParams.cihc = ihc_grades(g).*ones(length(CF),1);
+        modelParams.spont = spontrates(2);
         [psth_pos,psth_neg,psth_fs] = getAP_PSTH(input,fs,modelParams,CF);
         grand_envs_i(g,:,r) = sum(psth_neg,1)+sum(psth_pos,1);
     end

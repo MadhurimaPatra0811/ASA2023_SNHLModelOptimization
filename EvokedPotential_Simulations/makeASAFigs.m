@@ -14,13 +14,13 @@ addpath('PhysiologicalData')
 addpath('Functions')
 
 fig_dir = 'Figures/';
-sim_name = 'sim_202305051452.mat';
-% sim_name = 'sim_738919.mat';
+sim_name = 'sim_SR55NH_40CA_75dBSPL.mat';
+sim_dir = [sim_name(1:end-4),'/'];
 phys_name = 'CA_Processed.mat';
 phys_pitch_name = 'pitch_ca_tts_nh_efrs.mat';
 
-if ~isfolder(fig_dir)
-    mkdir(fig_dir);
+if ~isfolder([fig_dir,sim_dir])
+    mkdir([fig_dir,sim_dir]);
 end
 
 cwd = pwd();
@@ -142,7 +142,7 @@ for i = 1:length(mod_data.ihc_grades)
     
     buff = buff*(1:size(n_to_plot_mod,2));
     
-    t_waveform_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+    t_waveform_model_phys = tiledlayout(1,2,'TileSpacing','compact');
     nexttile;
     title('Model Simulations')
     hold on
@@ -218,8 +218,8 @@ for i = 1:length(mod_data.ihc_grades)
     set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
     
     %Save figs
-    exportgraphics(t_waveform_model_phys,[fig_dir,'simulatedWformFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
-    exportgraphics(spect_model_phys,[fig_dir,'simulatedSpectFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
+    exportgraphics(t_waveform_model_phys,[fig_dir,sim_dir,'simulatedWformFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
+    exportgraphics(spect_model_phys,[fig_dir,sim_dir,'simulatedSpectFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
 end
 
 %% Figure showing how cihc affects EFR and Spectrum
@@ -236,17 +236,17 @@ cihc_compare_t_fig = tiledlayout(1,1,"TileSpacing","tight");
 nexttile;
 hold on;
 plot(t, norm+buff,'color',blck,'linewidth',l_wdth);
-plot(t, impaired+buff,'color',colors_ca,'linewidth',l_wdth);
+plot(t, flip(impaired,2)+buff,'color',colors_ca,'linewidth',l_wdth);
 ylabel('C_{ihc}');
 xlabel('Time (s)')
 yticks(buff*1.1);
-labs = string(mod_data.ihc_grades);
+labs = flip(string(mod_data.ihc_grades));
 title('SQ25')
 set(gcf,'Position',fig_dims)
 set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
 set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold')
 yticklabels([labs,'FontWeight','Bold']);
-exportgraphics(cihc_compare_t_fig,[fig_dir,'wform_fxn_of_cihc.png'],'Resolution',300) 
+exportgraphics(cihc_compare_t_fig,[fig_dir,sim_dir,'wform_fxn_of_cihc.png'],'Resolution',300) 
 
 %Spectral Version
 norm = repmat(n_mod_fft(:,stim),1,length(mod_data.ihc_grades));
@@ -259,18 +259,18 @@ cihc_compare_s_fig = tiledlayout(1,1,"TileSpacing","tight");
 nexttile;
 hold on;
 plot(f, norm+buff,'color',blck,'linewidth',l_wdth);
-plot(f, impaired+buff,'color',colors_ca,'linewidth',l_wdth);
+plot(f, flip(impaired,2)+buff,'color',colors_ca,'linewidth',l_wdth);
 ylabel('C_{ihc}');
 xlabel('Frequency (Hz)')
 yticks(buff*1.1);
-labs = string(mod_data.ihc_grades);
+labs = flip(string(mod_data.ihc_grades));
 title('SQ25')
 set(gcf,'Position',fig_dims)
 set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
 set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold')
 yticklabels([labs,'FontWeight','Bold']);
 
-exportgraphics(cihc_compare_s_fig,[fig_dir,'spect_fxn_of_cihc.png'],'Resolution',300) 
+exportgraphics(cihc_compare_s_fig,[fig_dir,sim_dir,'spect_fxn_of_cihc.png'],'Resolution',300) 
 
 %% Transduction Figures
 
