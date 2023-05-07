@@ -1,6 +1,6 @@
 % Andrew Sivaprakasam
 %Description: Plots Simulated and physiological data, in addition to other
-% poster-related figures.
+% poster-related figures. This could all certainly be more efficient. 
 
 %TODO: 
 % - Pass a labels vector from simulation code for easier plotting
@@ -11,12 +11,11 @@ clear all, close all
 addpath('Stimulus_Generation')
 addpath('SimulatedData')
 addpath('PhysiologicalData')
-addpath('BEZ2018model/')
 addpath('Functions')
 
-fig_dir = 'Figures';
-% sim_name = 'sim_202305051452.mat';
-sim_name = 'sim_738919.mat';
+fig_dir = 'Figures/';
+sim_name = 'sim_202305051452.mat';
+% sim_name = 'sim_738919.mat';
 phys_name = 'CA_Processed.mat';
 phys_pitch_name = 'pitch_ca_tts_nh_efrs.mat';
 
@@ -128,100 +127,179 @@ ylims_s = [0.05,.55]; %spectral ylim
 labs = ["SAM","Sq25","F_0 103 | Rank 5","F_0 103 | Rank 13"];
 sim_indexes = [10,12,1,6];
 
-ihc = 1;
-ihc_val = mod_data.ihc_grades(ihc)*100;
+for i = 1:length(mod_data.ihc_grades)
+    ihc = i;
+    ihc_val = mod_data.ihc_grades(i);
+    
+    n_to_plot_mod = n_mod_efr(:,sim_indexes);
+    i_to_plot_mod = squeeze(i_mod_efr(ihc,:,sim_indexes));
+    
+    %get the cihc value specified, can loop thru this and generate fig if
+    %appropriate
+    
+    buff = 1.5;
+    phys_scale_fact = 0.65; %arbitrary at this point, for vis purposes.
+    
+    buff = buff*(1:size(n_to_plot_mod,2));
+    
+    t_waveform_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+    nexttile;
+    title('Model Simulations')
+    hold on
+    plot(t,n_to_plot_mod+buff,'color',blck,'linewidth',l_wdth)
+    plot(t,i_to_plot_mod+buff,'color',colors_ca,'linewidth',l_wdth)
+    hold off
+    yticks(buff*1.1);
+    yticklabels([labs,'FontWeight','Bold']);
+    ytickangle(45)
+    ylim(ylims_t);
+    %better way to do this?
+    legend('Normal','','','','',['C_{ihc} = ',num2str(ihc_val)]);
+    
+    nexttile;
+    title('In-Vivo')
+    hold on
+    plot(t,phys_scale_fact*n_phys_efr+buff,'color',blck,'linewidth',l_wdth)
+    plot(t,phys_scale_fact*i_phys_efr+buff,'color',colors_ca,'linewidth',l_wdth)
+    hold off
+    legend('Normal','','','','','Carboplatin - IHC Damage');
+    ylim(ylims_t);
+    yticks([]);
+    
+    %setting final attributes
+    % han=axes(t_waveform_model_phys,'visible','off'); 
+    % han.XLabel.Visible='on';
+    xlabel(t_waveform_model_phys,'Time (s)','FontWeight','Bold','FontSize',f_size)
+    set(gcf,'Position',fig_dims)
+    set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
+    set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+    
+    %Spectral Figures
+    
+    n_to_plot_mod = n_mod_fft(:,sim_indexes);
+    i_to_plot_mod = squeeze(i_mod_fft(ihc,:,sim_indexes));
+    
+    buff = .1;
+    buff = buff.*(1:size(n_to_plot_mod,2));
+    
+    figure;
+    spect_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+    nexttile;
+    title('Model Simulations')
+    hold on
+    plot(f,n_to_plot_mod+buff,'color',blck,'linewidth',l_wdth)
+    plot(f,i_to_plot_mod+buff,'color',colors_ca,'linewidth',l_wdth)
+    hold off
+    yticks(buff*1.1);
+    yticklabels([labs,'FontWeight','Bold']);
+    ytickangle(45)
+    ylim(ylims_s);
+    xlim([0,2000]);
+    %better way to do this?
+    legend('Normal','','','','',['C_{ihc} = ',num2str(ihc_val)]);
+    
+    nexttile;
+    title('In-Vivo')
+    hold on
+    plot(f,phys_scale_fact*n_phys_fft+buff,'color',blck,'linewidth',l_wdth)
+    plot(f,phys_scale_fact*i_phys_fft+buff,'color',colors_ca,'linewidth',l_wdth)
+    hold off
+    legend('Normal','','','','','Carboplatin - IHC Damage');
+    ylim(ylims_s);
+    xlim([0,2000]);
+    yticks([]);
+    
+    %setting final attributes
+    % han=axes(t_waveform_model_phys,'visible','off'); 
+    % han.XLabel.Visible='on';
+    xlabel(spect_model_phys,'Frequency (Hz)','FontWeight','Bold','FontSize',f_size)
+    set(gcf,'Position',fig_dims)
+    set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
+    set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+    
+    %Save figs
+    exportgraphics(t_waveform_model_phys,[fig_dir,'simulatedWformFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
+    exportgraphics(spect_model_phys,[fig_dir,'simulatedSpectFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
+end
 
-n_to_plot_mod = n_mod_efr(:,sim_indexes);
-i_to_plot_mod = squeeze(i_mod_efr(ihc,:,sim_indexes));
+%% Figure showing how cihc affects EFR and Spectrum
+fig_dims =  [1404 129 641 549];
 
-%get the cihc value specified, can loop thru this and generate fig if
-%appropriate
+stim = 2;
+norm = repmat(n_mod_efr(:,stim),1,length(mod_data.ihc_grades));
+impaired = squeeze(i_mod_efr(:,:,stim))';
 
 buff = 1.5;
-phys_scale_fact = 0.65; %arbitrary at this point, for vis purposes.
+buff = buff.*(1:size(norm,2));
 
-buff = buff*(1:size(n_to_plot_mod,2));
-
-t_waveform_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+cihc_compare_t_fig = tiledlayout(1,1,"TileSpacing","tight");
 nexttile;
-title('Model Simulations')
-hold on
-plot(t,n_to_plot_mod+buff,'color',blck,'linewidth',l_wdth)
-plot(t,i_to_plot_mod+buff,'color',colors_ca,'linewidth',l_wdth)
-hold off
+hold on;
+plot(t, norm+buff,'color',blck,'linewidth',l_wdth);
+plot(t, impaired+buff,'color',colors_ca,'linewidth',l_wdth);
+ylabel('C_{ihc}');
+xlabel('Time (s)')
 yticks(buff*1.1);
-yticklabels([labs,'FontWeight','Bold']);
-ytickangle(45)
-ylim(ylims_t);
-%better way to do this?
-legend('Normal','','','','',['C_{ihc} = ',num2str(ihc_val)]);
-
-nexttile;
-title('In-Vivo')
-hold on
-plot(t,phys_scale_fact*n_phys_efr+buff,'color',blck,'linewidth',l_wdth)
-plot(t,phys_scale_fact*i_phys_efr+buff,'color',colors_ca,'linewidth',l_wdth)
-hold off
-legend('Normal','','','','','Carboplatin - IHC Damage');
-ylim(ylims_t);
-yticks([]);
-
-%setting final attributes
-% han=axes(t_waveform_model_phys,'visible','off'); 
-% han.XLabel.Visible='on';
-xlabel(t_waveform_model_phys,'Time (s)','FontWeight','Bold','FontSize',f_size)
+labs = string(mod_data.ihc_grades);
+title('SQ25')
 set(gcf,'Position',fig_dims)
 set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
-set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold')
+yticklabels([labs,'FontWeight','Bold']);
+exportgraphics(cihc_compare_t_fig,[fig_dir,'wform_fxn_of_cihc.png'],'Resolution',300) 
 
-
-
-%Spectral Figures
-
-n_to_plot_mod = n_mod_fft(:,sim_indexes);
-i_to_plot_mod = squeeze(i_mod_fft(ihc,:,sim_indexes));
+%Spectral Version
+norm = repmat(n_mod_fft(:,stim),1,length(mod_data.ihc_grades));
+impaired = squeeze(i_mod_fft(:,:,stim))';
 
 buff = .1;
-buff = buff.*(1:size(n_to_plot_mod,2));
+buff = buff.*(1:size(norm,2));
 
-figure;
-spect_model_phys = tiledlayout(1,2,'TileSpacing','tight');
+cihc_compare_s_fig = tiledlayout(1,1,"TileSpacing","tight");
 nexttile;
-title('Model Simulations')
-hold on
-plot(f,n_to_plot_mod+buff,'color',blck,'linewidth',l_wdth)
-plot(f,i_to_plot_mod+buff,'color',colors_ca,'linewidth',l_wdth)
-hold off
+hold on;
+plot(f, norm+buff,'color',blck,'linewidth',l_wdth);
+plot(f, impaired+buff,'color',colors_ca,'linewidth',l_wdth);
+ylabel('C_{ihc}');
+xlabel('Frequency (Hz)')
 yticks(buff*1.1);
-yticklabels([labs,'FontWeight','Bold']);
-ytickangle(45)
-ylim(ylims_s);
-xlim([0,2000]);
-%better way to do this?
-legend('Normal','','','','',['C_{ihc} = ',num2str(ihc_val)]);
-
-nexttile;
-title('In-Vivo')
-hold on
-plot(f,phys_scale_fact*n_phys_fft+buff,'color',blck,'linewidth',l_wdth)
-plot(f,phys_scale_fact*i_phys_fft+buff,'color',colors_ca,'linewidth',l_wdth)
-hold off
-legend('Normal','','','','','Carboplatin - IHC Damage');
-ylim(ylims_s);
-xlim([0,2000]);
-yticks([]);
-
-%setting final attributes
-% han=axes(t_waveform_model_phys,'visible','off'); 
-% han.XLabel.Visible='on';
-xlabel(spect_model_phys,'Frequency (Hz)','FontWeight','Bold','FontSize',f_size)
+labs = string(mod_data.ihc_grades);
+title('SQ25')
 set(gcf,'Position',fig_dims)
 set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
-set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold')
+yticklabels([labs,'FontWeight','Bold']);
 
-
+exportgraphics(cihc_compare_s_fig,[fig_dir,'spect_fxn_of_cihc.png'],'Resolution',300) 
 
 %% Transduction Figures
 
+trans_fxn = tiledlayout(1,1,'TileSpacing','Tight');
+nexttile;
 
-%% Save
+cihc_vals = mod_data.ihc_grades;
+x = -50:0.1:50;
+
+hold on;
+nrm = transduc_nL(x,.1,3);
+plot(x,nrm,'Linewidth',4,'Color',blck);
+text(10,max(nrm)*.98,'C_{ihc} = 1','Color',blck);
+for i = 1:length(cihc_vals)
+    to_plot = transduc_nL(x*cihc_vals(i),.1,3);
+    colors_ca(4) = colors_ca(4)*.75; 
+    plot(x,to_plot,'Linewidth',4,'Color',colors_ca);
+    text(25,max(to_plot)*1.01,['C_{ihc} = ',num2str(cihc_vals(i))],'Color',colors_ca);
+end
+yax = linspace(min(nrm),max(nrm),5);
+xax = linspace(min(x),max(x),5);
+plot(zeros(length(yax),1),yax,'k--','linewidth',2);
+plot(xax,zeros(length(xax),1),'k--','linewidth',2);
+title('IHC Transduction Nonlinearity');
+set(gca, 'XTick', []);
+set(gca, 'YTick', []);%% stim plot
+h(1) = xlabel('IHC Input Level');
+h(2) = ylabel('IHC Potential (mV)');
+set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
+set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
+
+exportgraphics(trans_fxn,[fig_dir,'transduc_fxn_cihc.png'],'Resolution',300);
