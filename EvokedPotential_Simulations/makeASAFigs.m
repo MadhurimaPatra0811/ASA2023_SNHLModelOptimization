@@ -158,13 +158,41 @@ i_phys_fft = i_phys_fft(1:end/2,:)*2;
 %indices!!
 
 
-%Compute 
+%Compute NH vs CA coherence (physiology)
+for j = 1:size(n_phys_efr,2)
+   
+   %if SAM or Sq25, use multiples of 100
+   if j == 1 || j==2
+      freqs = 100*(1:16);
+   else
+      freqs = 103*(1:16);
+   end
 
-%example
-freqs = 103*(1:16);
-[test, F] = mscohere(n_phys_efr(:,4),squeeze(i_phys_efr(:,4)),[],[],freqs,fs);
-mean(test);
+   [cohere, F] = mscohere(n_phys_efr(:,j),i_phys_efr(:,j),[],[],freqs,fs);
+   phys_cohere(j) = mean(cohere);
+end
 
+phys_cohere = phys_cohere';
+
+sim_indexes = [10,12,1,6];
+n_mod_reform = n_mod_efr(:,sim_indexes);
+
+%should be done more efficiently!!
+%columns correspond to each cihc, row is for a stimulus
+for c = 1:length(mod_data.ihc_grades)
+    
+    i_mod_reform = squeeze(i_mod_efr(c,:,sim_indexes));
+    for j = 1:size(n_mod_reform,2)
+       [cohere, F] = mscohere(n_mod_reform(:,j),i_mod_reform(:,j),[],[],freqs,fs);
+       mod_cohere(j,c) = mean(cohere);
+    end
+
+end
+
+err = abs(phys_cohere-mod_cohere);
+[min_err, locs] = min(err,[],2);
+
+best_fits = mod_data.ihc_grades(locs); 
 %% Plotting Figures
 
 %Plot Parameters:
