@@ -146,9 +146,7 @@ i_phys_fft = i_phys_fft(1:end/2,:)*2;
 
 %xcorr with model vs phys CA
 
-
-
-%xcorr with model NH-CA vs phys 
+%xcorr with NH vs CA time diff
 
 %% Plotting Figures
 

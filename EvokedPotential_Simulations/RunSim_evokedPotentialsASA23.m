@@ -107,7 +107,6 @@ timestr = [num2str(yyyymmdd(datetime)),num2str(hour(datetime)),num2str(minute(da
 cd(simdir);
 save(['sim_',timestr,'.mat']);
 cd(cwd);
-
 %% quick filtering
 % 
 % band = [75,300];
