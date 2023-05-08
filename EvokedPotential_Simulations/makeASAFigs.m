@@ -143,12 +143,27 @@ i_phys_fft = i_phys_fft(1:end/2,:)*2;
 % all_ihc = sum(PKS_IHC(1:16,:));
 
 %% Estimating 'best fit' cihc
+%Since all signals are de-meaned, normalized by max of the norm, and time-locked 
+%estimating a best fit using the mean absolute difference
+%Some slight latency shifts...but model should account for it
 
-%xcorr with model vs phys CA
+%Computing for physiological data:
+% diffs_phys  = n_phys_efr-i_phys_efr;
+
+%try minimizing the best fit mag squared coherence between normal and
+%impaired
+
+%account for model data using 103 f0 for everything, and phys data being
+%100 for sq and SAM, but 103 for everything else. Make sure to use correct
+%indices!!
 
 
+%Compute 
 
-%xcorr with model NH-CA vs phys 
+%example
+freqs = 103*(1:16);
+[test, F] = mscohere(n_phys_efr(:,4),squeeze(i_phys_efr(:,4)),[],[],freqs,fs);
+mean(test);
 
 %% Plotting Figures
 
@@ -269,7 +284,7 @@ end
 %% Figure showing how cihc affects EFR and Spectrum
 fig_dims =  [1404 129 641 549];
 
-stim = 2;
+stim = 12;
 norm = repmat(n_mod_efr(:,stim),1,length(mod_data.ihc_grades));
 impaired = squeeze(i_mod_efr(:,:,stim))';
 
