@@ -211,7 +211,7 @@ ylims_s = [0.05,.55]; %spectral ylim
 
 %reformatting model vectors to match physiology
 %Col 1 = SAM, Col 2 = Sq25, Col 3 = Rank 5, Col 4 = Rank 13
-labs = ["SAM","Sq25","F_0 103 | Rank 5","F_0 103 | Rank 13"];
+labs = ["SAM","Sq25","F_0 103 | Rank 3","F_0 103 | Rank 13"];
 sim_indexes = [10,12,1,6];
 
 for i = 1:length(mod_data.ihc_grades)
@@ -305,8 +305,8 @@ for i = 1:length(mod_data.ihc_grades)
     set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold');
     
     %Save figs
-    exportgraphics(t_waveform_model_phys,[fig_dir,sim_dir,'simulatedWformFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
-    exportgraphics(spect_model_phys,[fig_dir,sim_dir,'simulatedSpectFig_cihc',num2str(ihc_val,'%.E'),'.png'],'Resolution',300) 
+    exportgraphics(t_waveform_model_phys,[fig_dir,sim_dir,'simulatedWformFig_cihc_',num2str(i),'.png'],'Resolution',300) 
+    exportgraphics(spect_model_phys,[fig_dir,sim_dir,'simulatedSpectFig_cihc_',num2str(i),'.png'],'Resolution',300) 
 end
 
 %% Figure showing how cihc affects EFR and Spectrum
