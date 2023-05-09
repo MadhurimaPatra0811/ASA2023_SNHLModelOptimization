@@ -365,6 +365,7 @@ colors_ca = [0.8500, 0.3250, 0.0980, .85]; %last number is the face alpha/transp
 
 figure;
 sing_spect = tiledlayout(1,1,'TileSpacing','compact');
+nexttile;
 stim = 2; %sq25
 hold on
 plot(f,n_phys_fft(:,stim),'Color',blck,'LineWidth',l_wdth);
