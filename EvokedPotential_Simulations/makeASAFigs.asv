@@ -263,7 +263,7 @@ for i = 1:length(mod_data.ihc_grades)
     
     %Spectral Figures
     
-    n_to_plot_mod = n_mod_fft(:,sim_indexes);
+    n_to_plot_mod = n_mod_fft(:,sim_indexes);flip(
     i_to_plot_mod = squeeze(i_mod_fft(ihc,:,sim_indexes));
     
     buff = .1;
@@ -370,14 +370,7 @@ hold on
 plot(f,n_phys_fft(:,stim),'Color',blck,'LineWidth',l_wdth);
 plot(f,i_phys_fft(:,stim),'Color',colors_ca,'LineWidth',l_wdth)
 hold off
-yticks([])
 title('Physiology');
-xlabel('Frequency (Hz)');
-set(findall(gcf,'-property','FontSize'),'FontSize',f_size);
-set(findall(gcf,'-property','FontWeight'),'FontWeight','Bold')
-yticklabels([labs,'FontWeight','Bold']);
-set(gcf,'Position',[675 647 488 240]);
-exportgraphics(sing_spect,[fig_dir,sim_dir,'phys_spect_inset.png'],'Resolution',300) 
 
 
 %% Transduction Figures
